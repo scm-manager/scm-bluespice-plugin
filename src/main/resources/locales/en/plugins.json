@@ -1,0 +1,19 @@
+{
+  "scm-bluespice-plugin": {
+    "navLink": "BlueSpice",
+    "config": {
+      "title": "BlueSpice Configuration",
+      "url": {
+        "label": "URL"
+      }
+    }
+  },
+  "verbs": {
+    "repository": {
+      "blueSpiceConfiguration": {
+        "displayName": "Configure BlueSpice",
+        "description": "May configure BlueSpice"
+      }
+    }
+  }
+}
