@@ -3,16 +3,39 @@
     "navLink": "BlueSpice",
     "config": {
       "title": "BlueSpice Konfiguration",
-      "url": {
-        "label": "URL"
+      "globalDescription": "Diese Konfiguration ermöglicht das Festlegen der Basis-URL einer BlueSpice-Instanz. In den Repository-Einstellungen kann anschließend der Pfad erweitert werden.",
+      "description": "Diese Konfiguration ermöglicht das Festlegen eines ergänzenden Pfades zu einer in der globalen Konfiguration definierten Basis-URL. Wurde kein Pfad festgelegt, wird auf die Basis-URL verwiesen.",
+      "baseUrl": {
+        "label": "Basis-URL"
+      },
+      "path": {
+        "label": "Pfad"
+      }
+    }
+  },
+  "permissions": {
+    "configuration": {
+      "read,write": {
+        "blueSpice": {
+          "displayName": "Globale BlueSpice Konfiguration ändern",
+          "description": "Darf die globale BlueSpice Konfiguration verändern"
+        }
+      }
+    },
+    "repository": {
+      "configureBlueSpice": {
+        "*": {
+          "displayName": "Repository-spezifische BlueSpice Konfiguration ändern",
+          "description": "Darf die repository-spezifischen BlueSpice Konfiguration verändern"
+        }
       }
     }
   },
   "verbs": {
     "repository": {
-      "blueSpiceConfiguration": {
-        "displayName": "BlueSpice konfigurieren",
-        "description": "Darf BlueSpice konfigurieren"
+      "configureBlueSpice": {
+        "displayName": "BlueSpice Konfiguration ändern",
+        "description": "Darf die BlueSpice Konfiguration verändern"
       }
     }
   }

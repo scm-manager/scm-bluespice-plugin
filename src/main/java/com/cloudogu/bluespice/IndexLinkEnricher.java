@@ -24,23 +24,30 @@
 
 package com.cloudogu.bluespice;
 
-import de.otto.edison.hal.HalRepresentation;
-import de.otto.edison.hal.Links;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import sonia.scm.api.v2.resources.*;
+import sonia.scm.config.ConfigurationPermissions;
+import sonia.scm.plugin.Extension;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-public class BlueSpiceConfigDto extends HalRepresentation {
+import static com.cloudogu.bluespice.BlueSpiceContext.NAME;
 
-  private String url;
+@Extension
+@Enrich(Index.class)
+public class IndexLinkEnricher implements HalEnricher {
+
+  private final Provider<ScmPathInfoStore> scmPathInfoStore;
+
+  @Inject
+  public IndexLinkEnricher(Provider<ScmPathInfoStore> scmPathInfoStore) {
+    this.scmPathInfoStore = scmPathInfoStore;
+  }
 
   @Override
-  protected HalRepresentation add(Links links) {
-    return super.add(links);
+  public void enrich(HalEnricherContext context, HalAppender appender) {
+    if (ConfigurationPermissions.read(NAME).isPermitted()) {
+      LinkBuilder linkBuilder = new LinkBuilder(scmPathInfoStore.get().get(), BlueSpiceConfigResource.class);
+      appender.appendLink("blueSpiceConfig", linkBuilder.method("getGlobalConfig").parameters().href());
+    }
   }
 }

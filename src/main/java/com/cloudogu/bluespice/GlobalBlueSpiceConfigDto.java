@@ -24,22 +24,21 @@
 
 package com.cloudogu.bluespice;
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlRootElement;
-import lombok.Data;
-import sonia.scm.Validateable;
-import sonia.scm.util.Util;
+import de.otto.edison.hal.HalRepresentation;
+import de.otto.edison.hal.Links;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlRootElement(name = "blueSpiceConfig")
-public class BlueSpiceConfiguration implements Validateable {
+@NoArgsConstructor
+@Getter
+@Setter
+public class GlobalBlueSpiceConfigDto extends HalRepresentation {
 
-  private String url;
+  private String baseUrl;
 
   @Override
-  public boolean isValid() {
-    return Util.isNotEmpty(url);
+  protected HalRepresentation add(Links links) {
+    return super.add(links);
   }
 }

@@ -1,0 +1,2 @@
+- type: added
+  description: Possibility to define the base URL of a BlueSpice instance and a supplementary path on repository level

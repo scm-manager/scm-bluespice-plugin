@@ -25,28 +25,44 @@
 package com.cloudogu.bluespice;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import sonia.scm.repository.Repository;
 import sonia.scm.store.ConfigurationStore;
 import sonia.scm.store.ConfigurationStoreFactory;
 
-public class BlueSpiceConfigStore {
+@Singleton
+public class BlueSpiceContext {
+
+  public static final String NAME = "blueSpice";
 
   private final ConfigurationStoreFactory storeFactory;
 
   @Inject
-  public BlueSpiceConfigStore(ConfigurationStoreFactory storeFactory) {
+  public BlueSpiceContext(ConfigurationStoreFactory storeFactory) {
     this.storeFactory = storeFactory;
   }
 
-  public BlueSpiceConfiguration getConfiguration(Repository repository) {
-    return createStore(repository.getId()).getOptional().orElse(new BlueSpiceConfiguration());
+  public GlobalBlueSpiceConfiguration getConfiguration() {
+    return createGlobalStore().getOptional().orElse(new GlobalBlueSpiceConfiguration());
   }
 
-  private ConfigurationStore<BlueSpiceConfiguration> createStore(String repositoryId) {
-    return storeFactory.withType(BlueSpiceConfiguration.class).withName("blueSpiceConfig").forRepository(repositoryId).build();
+  public BlueSpiceRepositoryConfiguration getConfiguration(Repository repository) {
+    return createStore(repository.getId()).getOptional().orElse(new BlueSpiceRepositoryConfiguration());
   }
 
-  public void storeConfiguration(BlueSpiceConfiguration configuration, String repositoryId) {
+  private ConfigurationStore<BlueSpiceRepositoryConfiguration> createStore(String repositoryId) {
+    return storeFactory.withType(BlueSpiceRepositoryConfiguration.class).withName(NAME).forRepository(repositoryId).build();
+  }
+
+  private ConfigurationStore<GlobalBlueSpiceConfiguration> createGlobalStore() {
+    return storeFactory.withType(GlobalBlueSpiceConfiguration.class).withName(NAME).build();
+  }
+
+  public void storeConfiguration(GlobalBlueSpiceConfiguration configuration) {
+    createGlobalStore().set(configuration);
+  }
+
+  public void storeConfiguration(BlueSpiceRepositoryConfiguration configuration, String repositoryId) {
     createStore(repositoryId).set(configuration);
   }
 }

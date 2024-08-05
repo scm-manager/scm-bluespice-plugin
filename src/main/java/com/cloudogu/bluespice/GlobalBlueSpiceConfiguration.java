@@ -22,21 +22,24 @@
  * SOFTWARE.
  */
 
-import React, { FC } from "react";
-import { useTranslation } from "react-i18next";
-import { ConfigurationForm, Subtitle, Form } from "@scm-manager/ui-core";
+package com.cloudogu.bluespice;
 
-const BlueSpiceConfigurationForm: FC<{ link: string }> = ({ link }) => {
-  const [t] = useTranslation("plugins");
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
+import sonia.scm.Validateable;
+import sonia.scm.util.Util;
 
-  return (
-    <ConfigurationForm link={link} translationPath={["plugins", "scm-bluespice-plugin.config"]}>
-      <Subtitle>{t("scm-bluespice-plugin.config.title")}</Subtitle>
-      <div className="columns">
-        <Form.Input name="url"/>
-      </div>
-    </ConfigurationForm>
-);
-};
+@Data
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "bluespice-config")
+public class GlobalBlueSpiceConfiguration implements Validateable {
 
-export default BlueSpiceConfigurationForm;
+  private String baseUrl;
+
+  @Override
+  public boolean isValid() {
+    return Util.isNotEmpty(baseUrl);
+  }
+}

@@ -22,26 +22,22 @@
  * SOFTWARE.
  */
 
-import { binder } from "@scm-manager/ui-extensions";
-import { ConfigurationBinder } from "@scm-manager/ui-components";
-import BlueSpiceRepositoryConfiguration from "./BlueSpiceRepositoryConfiguration";
-import BlueSpiceNavLink from "./BlueSpiceNavLink";
-import GlobalBlueSpiceConfiguration from "./GlobalBlueSpiceConfiguration";
+import React, { FC } from "react";
+import { useTranslation } from "react-i18next";
+import { ConfigurationForm, Subtitle, Form } from "@scm-manager/ui-core";
 
-ConfigurationBinder.bindGlobal(
-  "/bluespice",
-  "scm-bluespice-plugin.navLink",
-  "blueSpiceConfig",
-  GlobalBlueSpiceConfiguration
-)
+const BlueSpiceRepositoryConfiguration: FC<{ link: string }> = ({ link }) => {
+  const [t] = useTranslation("plugins");
 
-ConfigurationBinder.bindRepositorySetting(
-  "/bluespice",
-  "scm-bluespice-plugin.navLink",
-  "blueSpiceConfig",
-  BlueSpiceRepositoryConfiguration
-);
+  return (
+    <ConfigurationForm link={link} translationPath={["plugins", "scm-bluespice-plugin.config"]}>
+      <Subtitle>{t("scm-bluespice-plugin.config.title")}</Subtitle>
+      <p className="mb-2">{t("scm-bluespice-plugin.config.description")}</p>
+      <Form.Row>
+        <Form.Input name="path"/>
+      </Form.Row>
+    </ConfigurationForm>
+  );
+};
 
-binder.bind("repository.navigation", BlueSpiceNavLink, {
-  predicate: props => !!props.repository._links.blueSpice?.href
-});
+export default BlueSpiceRepositoryConfiguration;

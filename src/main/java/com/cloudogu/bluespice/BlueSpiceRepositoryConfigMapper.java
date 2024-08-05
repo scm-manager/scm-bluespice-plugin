@@ -37,31 +37,31 @@ import sonia.scm.repository.RepositoryPermissions;
 import static de.otto.edison.hal.Links.linkingTo;
 
 @Mapper
-public abstract class BlueSpiceConfigMapper extends HalAppenderMapper {
+public abstract class BlueSpiceRepositoryConfigMapper extends HalAppenderMapper {
 
   @Inject
   private ScmPathInfoStore scmPathInfoStore;
 
-  public abstract BlueSpiceConfigDto map(BlueSpiceConfiguration config, @Context Repository repository);
+  public abstract BlueSpiceRepositoryConfigDto map(BlueSpiceRepositoryConfiguration config, @Context Repository repository);
 
-  public abstract BlueSpiceConfiguration map(BlueSpiceConfigDto configDto, @Context BlueSpiceConfiguration configuration);
+  public abstract BlueSpiceRepositoryConfiguration map(BlueSpiceRepositoryConfigDto dto, @Context BlueSpiceRepositoryConfiguration oldConfig);
 
   @AfterMapping
-  public void addLinks(@MappingTarget BlueSpiceConfigDto target, @Context Repository repository) {
+  public void appendLinks(@MappingTarget BlueSpiceRepositoryConfigDto target, @Context Repository repository) {
     Links.Builder linksBuilder = linkingTo().self(self(repository));
-    if (RepositoryPermissions.custom("blueSpiceConfiguration", repository).isPermitted()) {
+    if (RepositoryPermissions.custom("configureBlueSpice", repository).isPermitted()) {
       linksBuilder.single(Link.link("update", update(repository)));
+      target.add(linksBuilder.build());
     }
-    target.add(linksBuilder.build());
   }
 
   private String self(Repository repository) {
     LinkBuilder linkBuilder = new LinkBuilder(scmPathInfoStore.get(), BlueSpiceConfigResource.class);
-    return linkBuilder.method("getConfiguration").parameters(repository.getNamespace(), repository.getName()).href();
+    return linkBuilder.method("getRepoConfig").parameters(repository.getNamespace(), repository.getName()).href();
   }
 
   private String update(Repository repository) {
     LinkBuilder linkBuilder = new LinkBuilder(scmPathInfoStore.get(), BlueSpiceConfigResource.class);
-    return linkBuilder.method("updateConfiguration").parameters(repository.getNamespace(), repository.getName()).href();
+    return linkBuilder.method("updateRepoConfig").parameters(repository.getNamespace(), repository.getName()).href();
   }
 }

@@ -22,26 +22,23 @@
  * SOFTWARE.
  */
 
-import { binder } from "@scm-manager/ui-extensions";
-import { ConfigurationBinder } from "@scm-manager/ui-components";
-import BlueSpiceRepositoryConfiguration from "./BlueSpiceRepositoryConfiguration";
-import BlueSpiceNavLink from "./BlueSpiceNavLink";
-import GlobalBlueSpiceConfiguration from "./GlobalBlueSpiceConfiguration";
+package com.cloudogu.bluespice;
 
-ConfigurationBinder.bindGlobal(
-  "/bluespice",
-  "scm-bluespice-plugin.navLink",
-  "blueSpiceConfig",
-  GlobalBlueSpiceConfiguration
-)
+import de.otto.edison.hal.HalRepresentation;
+import de.otto.edison.hal.Links;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-ConfigurationBinder.bindRepositorySetting(
-  "/bluespice",
-  "scm-bluespice-plugin.navLink",
-  "blueSpiceConfig",
-  BlueSpiceRepositoryConfiguration
-);
+@NoArgsConstructor
+@Getter
+@Setter
+public class BlueSpiceRepositoryConfigDto extends HalRepresentation {
 
-binder.bind("repository.navigation", BlueSpiceNavLink, {
-  predicate: props => !!props.repository._links.blueSpice?.href
-});
+  private String path;
+
+  @Override
+  protected HalRepresentation add(Links links) {
+    return super.add(links);
+  }
+}

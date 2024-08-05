@@ -29,28 +29,39 @@ import jakarta.inject.Provider;
 import sonia.scm.api.v2.resources.*;
 import sonia.scm.plugin.Extension;
 import sonia.scm.repository.Repository;
+import sonia.scm.repository.RepositoryPermissions;
 
 @Extension
 @Enrich(Repository.class)
-public class BlueSpiceConfigEnricher implements HalEnricher {
+public class RepositoryLinkEnricher implements HalEnricher {
 
   private final Provider<ScmPathInfoStore> scmPathInfoStore;
-  private final BlueSpiceConfigStore configStore;
+  private final BlueSpiceContext blueSpiceContext;
 
   @Inject
-  public BlueSpiceConfigEnricher(Provider<ScmPathInfoStore> scmPathInfoStore, BlueSpiceConfigStore configStore) {
+  public RepositoryLinkEnricher(Provider<ScmPathInfoStore> scmPathInfoStore, BlueSpiceContext blueSpiceContext) {
     this.scmPathInfoStore = scmPathInfoStore;
-    this.configStore = configStore;
+    this.blueSpiceContext = blueSpiceContext;
   }
 
   @Override
   public void enrich(HalEnricherContext context, HalAppender appender) {
     Repository repository = context.oneRequireByType(Repository.class);
     LinkBuilder linkBuilder = new LinkBuilder(scmPathInfoStore.get().get(), BlueSpiceConfigResource.class);
-    appender.appendLink("blueSpiceConfig", linkBuilder.method("getConfiguration").parameters(repository.getNamespace(), repository.getName()).href());
-
-    if (configStore.getConfiguration(repository).getUrl() != null) {
-      appender.appendLink("blueSpice", configStore.getConfiguration(repository).getUrl());
+    String baseUrl = blueSpiceContext.getConfiguration().getBaseUrl();
+    if (baseUrl != null) {
+      if (RepositoryPermissions.custom("configureBlueSpice", repository).isPermitted()) {
+      appender.appendLink("blueSpiceConfig", linkBuilder.method("getRepoConfig").parameters(repository.getNamespace(), repository.getName()).href());
+      }
+      String path = blueSpiceContext.getConfiguration(repository).getPath();
+      if (path != null) {
+        if (!baseUrl.endsWith("/")) {
+          baseUrl = baseUrl + "/";
+        }
+        appender.appendLink("blueSpice", baseUrl + path);
+      } else {
+        appender.appendLink("blueSpice", baseUrl);
+      }
     }
   }
 }

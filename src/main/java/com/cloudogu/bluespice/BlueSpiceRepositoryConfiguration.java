@@ -22,26 +22,24 @@
  * SOFTWARE.
  */
 
-import { binder } from "@scm-manager/ui-extensions";
-import { ConfigurationBinder } from "@scm-manager/ui-components";
-import BlueSpiceRepositoryConfiguration from "./BlueSpiceRepositoryConfiguration";
-import BlueSpiceNavLink from "./BlueSpiceNavLink";
-import GlobalBlueSpiceConfiguration from "./GlobalBlueSpiceConfiguration";
+package com.cloudogu.bluespice;
 
-ConfigurationBinder.bindGlobal(
-  "/bluespice",
-  "scm-bluespice-plugin.navLink",
-  "blueSpiceConfig",
-  GlobalBlueSpiceConfiguration
-)
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
+import sonia.scm.Validateable;
+import sonia.scm.util.Util;
 
-ConfigurationBinder.bindRepositorySetting(
-  "/bluespice",
-  "scm-bluespice-plugin.navLink",
-  "blueSpiceConfig",
-  BlueSpiceRepositoryConfiguration
-);
+@Data
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "bluespice-config")
+public class BlueSpiceRepositoryConfiguration implements Validateable {
 
-binder.bind("repository.navigation", BlueSpiceNavLink, {
-  predicate: props => !!props.repository._links.blueSpice?.href
-});
+  private String path;
+
+  @Override
+  public boolean isValid() {
+    return Util.isNotEmpty(path);
+  }
+}

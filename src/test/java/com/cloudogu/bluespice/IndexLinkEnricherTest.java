@@ -25,6 +25,9 @@
 package com.cloudogu.bluespice;
 
 import com.google.inject.util.Providers;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,57 +36,52 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import sonia.scm.api.v2.resources.HalAppender;
 import sonia.scm.api.v2.resources.HalEnricherContext;
 import sonia.scm.api.v2.resources.ScmPathInfoStore;
-import sonia.scm.repository.Repository;
-import sonia.scm.repository.RepositoryTestData;
 
 import java.net.URI;
 
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class BlueSpiceConfigEnricherTest {
-
-  @Mock
-  private BlueSpiceConfigStore configStore;
-  @Mock
-  private BlueSpiceConfiguration configuration;
+public class IndexLinkEnricherTest {
 
   @Mock
   private HalEnricherContext context;
   @Mock
   private HalAppender appender;
+  @Mock
+  private Subject subject;
 
-  private BlueSpiceConfigEnricher enricher;
-  private Repository repository;
+  private IndexLinkEnricher enricher;
 
   @BeforeEach
-  public void setUp() {
+  public void init() {
+    ThreadContext.bind(subject);
     ScmPathInfoStore scmPathInfoStore = new ScmPathInfoStore();
     scmPathInfoStore.set(() -> URI.create("https://scm-manager.org/scm/api/"));
-    enricher = new BlueSpiceConfigEnricher(Providers.of(scmPathInfoStore), configStore);
+    enricher = new IndexLinkEnricher(Providers.of(scmPathInfoStore));
+  }
 
-    repository = RepositoryTestData.createHeartOfGold("git");
-    when(context.oneRequireByType(Repository.class)).thenReturn(repository);
-    when(configStore.getConfiguration(repository)).thenReturn(configuration);
+  @AfterEach
+  void unbindSubject() {
+    ThreadContext.unbindSubject();
   }
 
   @Test
-  void shouldOnlyAppendConfigLink() {
-    when(configStore.getConfiguration(repository).getUrl()).thenReturn(null);
+  void shouldNotAppendConfigLink() {
+    when(subject.isPermitted("configuration:read:blueSpice")).thenReturn(false);
+
+    enricher.enrich(context, appender);
+
+    verify(appender, never()).appendLink(anyString(), anyString());
+  }
+
+  @Test
+  void shouldAppendConfigLink() {
+    when(subject.isPermitted("configuration:read:blueSpice")).thenReturn(true);
 
     enricher.enrich(context, appender);
 
     verify(appender, atMostOnce()).appendLink(anyString(), anyString());
-    verify(appender).appendLink("blueSpiceConfig", String.format("https://scm-manager.org/scm/api/v2/bluespice/%s/%s", repository.getNamespace(), repository.getName()));
-  }
-
-  @Test
-  void shouldAppendBlueSpiceLink() {
-    when(configStore.getConfiguration(repository).getUrl()).thenReturn("https://example.com/");
-
-    enricher.enrich(context, appender);
-
-    verify(appender, times(2)).appendLink(anyString(), anyString());
-    verify(appender).appendLink("blueSpice", "https://example.com/");
+    verify(appender).appendLink("blueSpiceConfig", "https://scm-manager.org/scm/api/v2/bluespice/");
   }
 }

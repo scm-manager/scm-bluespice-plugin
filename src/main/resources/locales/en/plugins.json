@@ -3,16 +3,39 @@
     "navLink": "BlueSpice",
     "config": {
       "title": "BlueSpice Configuration",
-      "url": {
-        "label": "URL"
+      "globalDescription": "This configuration allows you to define the base URL of a BlueSpice instance. The path can then be extended in the repository settings.",
+      "description": "This configuration allows you to define a supplementary path to a base URL defined in the global configuration. If no path has been defined, the base URL is referenced.",
+      "baseUrl": {
+        "label": "Base URL"
+      },
+      "path": {
+        "label": "Path"
+      }
+    }
+  },
+  "permissions": {
+    "configuration": {
+      "read,write": {
+        "blueSpice": {
+          "displayName": "Modify global BlueSpice configuration",
+          "description": "May modify the global BlueSpice configuration"
+        }
+      }
+    },
+    "repository": {
+      "configureBlueSpice": {
+        "*": {
+          "displayName": "Modify repository specific BlueSpice configuration",
+          "description": "May modify the repository specific BlueSpice configuration for all repositories"
+        }
       }
     }
   },
   "verbs": {
     "repository": {
-      "blueSpiceConfiguration": {
-        "displayName": "Configure BlueSpice",
-        "description": "May configure BlueSpice"
+      "configureBlueSpice": {
+        "displayName": "configure BlueSpice",
+        "description": "May modify the repository specific BlueSpice configuration"
       }
     }
   }
