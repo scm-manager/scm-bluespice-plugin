@@ -26,6 +26,7 @@ import React, { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfigurationForm, Title, Form } from "@scm-manager/ui-core";
 import { HalRepresentation } from "@scm-manager/ui-types";
+import { validation } from "@scm-manager/ui-components";
 
 type GlobalBlueSpiceConfigurationDto = HalRepresentation & {
   baseUrl: string;
@@ -33,6 +34,10 @@ type GlobalBlueSpiceConfigurationDto = HalRepresentation & {
 
 const GlobalBlueSpiceConfiguration: FC<{ link: string }> = ({ link }) => {
   const [t] = useTranslation("plugins");
+
+  const isValidBaseUrl = (baseUrl: string) => {
+    return baseUrl === "" || validation.isUrlValid(baseUrl);
+  };
 
   return (
     <ConfigurationForm<GlobalBlueSpiceConfigurationDto>
@@ -42,7 +47,7 @@ const GlobalBlueSpiceConfiguration: FC<{ link: string }> = ({ link }) => {
       <Title>{t("scm-bluespice-plugin.config.title")}</Title>
       <p className="mb-2">{t("scm-bluespice-plugin.config.globalDescription")}</p>
       <Form.Row>
-        <Form.Input name="baseUrl" />
+        <Form.Input name="baseUrl" rules={{ validate: isValidBaseUrl }} />
       </Form.Row>
     </ConfigurationForm>
   );

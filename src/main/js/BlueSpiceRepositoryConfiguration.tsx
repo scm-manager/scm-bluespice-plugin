@@ -47,21 +47,20 @@ const BlueSpiceRepositoryConfiguration: FC<{ link: string }> = ({ link }) => {
   };
 
   const handleLinkWithBaseUrl = (baseUrl: string, route: string) => {
-    if (route) {
-      if (!baseUrl.endsWith("/") && !route.startsWith("/")) {
-        handleLink(baseUrl + "/" + route);
-      } else if (baseUrl.endsWith("/") && route.startsWith("/")) {
-        handleLink(baseUrl + route.replace("/", ""));
-      } else {
-        handleLink(baseUrl + route);
-      }
-    } else {
+    if (!route) {
       handleLink(baseUrl);
+      return;
     }
+
+    if (route.startsWith("/")) {
+      route = route.substring(1, route.length);
+    }
+
+    handleLink(`${baseUrl}/${route}`);
   };
 
   const isValidUrl = (value: string) => {
-    return validation.isUrlValid(value);
+    return value === "" || validation.isUrlValid(value);
   };
 
   return (
