@@ -4,12 +4,20 @@
     "config": {
       "title": "BlueSpice Configuration",
       "globalDescription": "This configuration allows you to define the base URL of a BlueSpice instance. The path can then be extended in the repository settings.",
-      "description": "This configuration allows you to define a supplementary path to a base URL defined in the global configuration. If no path has been defined, the base URL is referenced.",
+      "button": "Test link",
+      "configure": "configure BlueSpice",
       "baseUrl": {
-        "label": "Base URL"
+        "header": "Expend the base URL:",
+        "description": "with a path or alternatively set an individual URL."
       },
-      "path": {
-        "label": "Path"
+      "overridePath": {
+        "header": "Configure the URL to access your BlueSpice server",
+        "label": "BlueSpice-URL",
+        "option": "Set individual BlueSpice URL"
+      },
+      "appendPath": {
+        "label": "Path",
+        "option": "Expand base URL"
       }
     }
   },

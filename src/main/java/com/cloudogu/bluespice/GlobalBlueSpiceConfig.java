@@ -28,18 +28,12 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Data;
-import sonia.scm.Validateable;
-import sonia.scm.util.Util;
 
 @Data
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "bluespice-config")
-public class BlueSpiceRepositoryConfiguration implements Validateable {
+public class GlobalBlueSpiceConfig {
 
-  private String path;
+  private String baseUrl;
 
-  @Override
-  public boolean isValid() {
-    return Util.isNotEmpty(path);
-  }
 }

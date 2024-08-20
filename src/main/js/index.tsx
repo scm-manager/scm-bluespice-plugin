@@ -33,7 +33,7 @@ ConfigurationBinder.bindGlobal(
   "scm-bluespice-plugin.navLink",
   "blueSpiceConfig",
   GlobalBlueSpiceConfiguration
-)
+);
 
 ConfigurationBinder.bindRepositorySetting(
   "/bluespice",

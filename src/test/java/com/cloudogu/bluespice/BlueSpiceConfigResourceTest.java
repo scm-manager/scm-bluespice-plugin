@@ -25,78 +25,82 @@
 package com.cloudogu.bluespice;
 
 import jakarta.ws.rs.core.MediaType;
-import org.apache.shiro.authz.AuthorizationException;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
+import org.github.sdorra.jse.ShiroExtension;
+import org.github.sdorra.jse.SubjectAware;
 import org.jboss.resteasy.mock.MockHttpRequest;
 import org.jboss.resteasy.mock.MockHttpResponse;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import sonia.scm.api.v2.resources.ScmPathInfoStore;
 import sonia.scm.repository.NamespaceAndName;
 import sonia.scm.repository.Repository;
 import sonia.scm.repository.RepositoryManager;
 import sonia.scm.repository.RepositoryTestData;
+import sonia.scm.web.JsonMockHttpRequest;
+import sonia.scm.web.JsonMockHttpResponse;
 import sonia.scm.web.RestDispatcher;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, ShiroExtension.class})
 public class BlueSpiceConfigResourceTest {
 
   @Mock
   private RepositoryManager repositoryManager;
   @Mock
   private BlueSpiceContext context;
-  @Mock
-  private GlobalBlueSpiceConfigMapper globalConfigMapper;
-  @Mock
-  private BlueSpiceRepositoryConfigMapper configMapper;
-  @Mock
-  private Subject subject;
 
   private RestDispatcher dispatcher;
-  private final GlobalBlueSpiceConfiguration globalConfig = new GlobalBlueSpiceConfiguration();
+
+  private final ScmPathInfoStore pathInfoStore = new ScmPathInfoStore();
+  private final String domain = "http://localhost:8080/scm/api/";
+  private final GlobalBlueSpiceConfig globalConfig = new GlobalBlueSpiceConfig();
+  private final GlobalBlueSpiceConfigMapper globalConfigMapper = new GlobalBlueSpiceConfigMapperImpl();
+  private final BlueSpiceRepositoryConfigMapper repoConfigMapper = new BlueSpiceRepositoryConfigMapperImpl();
 
   @BeforeEach
   void init() {
-    ThreadContext.bind(subject);
-    BlueSpiceConfigResource resource = new BlueSpiceConfigResource(repositoryManager, context, globalConfigMapper, configMapper);
+    BlueSpiceConfigResource resource = new BlueSpiceConfigResource(repositoryManager, context, globalConfigMapper, repoConfigMapper);
+
+    pathInfoStore.set(() -> URI.create(domain));
+    globalConfigMapper.setScmPathInfoStore(pathInfoStore);
+    repoConfigMapper.setScmPathInfoStore(pathInfoStore);
+    repoConfigMapper.setBlueSpiceContext(context);
 
     dispatcher = new RestDispatcher();
     dispatcher.addSingletonResource(resource);
     globalConfig.setBaseUrl("https://example.com");
   }
 
-  @AfterEach
-  void unbindSubject() {
-    ThreadContext.unbindSubject();
-  }
-
   @Test
+  @SubjectAware(value = "TrainerRed", permissions = {"configuration:read:blueSpice", "configuration:write:blueSpice"})
   void shouldGetGlobalConfig() throws URISyntaxException {
     when(context.getConfiguration()).thenReturn(globalConfig);
-    when(globalConfigMapper.map(context.getConfiguration())).thenReturn(new GlobalBlueSpiceConfigDto());
 
     MockHttpRequest request = MockHttpRequest.get("/v2/bluespice/");
-    MockHttpResponse response = new MockHttpResponse();
+    JsonMockHttpResponse response = new JsonMockHttpResponse();
     dispatcher.invoke(request, response);
 
     assertThat(response.getStatus()).isEqualTo(200);
+
+    GlobalBlueSpiceConfigDto responseBody = response.getContentAs(GlobalBlueSpiceConfigDto.class);
+    assertThat(responseBody.getBaseUrl()).isEqualTo(globalConfig.getBaseUrl());
+    assertThat(responseBody.getLinks().getLinkBy("self").get().getHref()).isEqualTo(domain + "v2/bluespice/");
+    assertThat(responseBody.getLinks().getLinkBy("update").get().getHref()).isEqualTo(domain + "v2/bluespice/");
   }
 
   @Test
-  void shouldNotGetGlobalConfig() throws URISyntaxException {
-    doThrow(AuthorizationException.class).when(subject).checkPermission("configuration:read:blueSpice");
-
+  @SubjectAware(value = "TrainerRed")
+  void shouldNotGetGlobalConfigBecausePermissionIsMissing() throws URISyntaxException {
     MockHttpRequest request = MockHttpRequest.get("/v2/bluespice/");
     MockHttpResponse response = new MockHttpResponse();
     dispatcher.invoke(request, response);
@@ -105,29 +109,27 @@ public class BlueSpiceConfigResourceTest {
   }
 
   @Test
+  @SubjectAware(value = "TrainerRed", permissions = "configuration:write:blueSpice")
   void shouldUpdateGlobalConfig() throws URISyntaxException {
-    GlobalBlueSpiceConfigDto configDto = new GlobalBlueSpiceConfigDto();
-    GlobalBlueSpiceConfiguration updatedConfig = new GlobalBlueSpiceConfiguration();
-    updatedConfig.setBaseUrl("https://test.com");
-    when(context.getConfiguration()).thenReturn(globalConfig);
-    when(globalConfigMapper.map(configDto, context.getConfiguration())).thenReturn(updatedConfig);
-
-    MockHttpRequest request = MockHttpRequest.put("/v2/bluespice/")
+    JsonMockHttpRequest request = JsonMockHttpRequest.put("/v2/bluespice/")
       .contentType(MediaType.APPLICATION_JSON_TYPE)
-      .content("{ \"baseUrl\": \"https://test.com\" }".getBytes());
+      .json("{ 'baseUrl': 'https://test.com' }");
     MockHttpResponse response = new MockHttpResponse();
     dispatcher.invoke(request, response);
 
     assertThat(response.getStatus()).isEqualTo(204);
+    GlobalBlueSpiceConfig expectedConfig = new GlobalBlueSpiceConfig();
+    expectedConfig.setBaseUrl("https://test.com");
+    verify(context).storeConfiguration(expectedConfig);
   }
 
   @Test
-  void shouldNotUpdateGlobalConfig() throws URISyntaxException {
-    doThrow(AuthorizationException.class).when(subject).checkPermission("configuration:write:blueSpice");
-
-    MockHttpRequest request = MockHttpRequest.put("/v2/bluespice/")
+  @SubjectAware(value = "TrainerRed")
+  void shouldNotUpdateGlobalConfigBecauseOfMissingPermission() throws URISyntaxException {
+    JsonMockHttpRequest request = JsonMockHttpRequest.put("/v2/bluespice/")
       .contentType(MediaType.APPLICATION_JSON_TYPE)
-      .content("{ \"baseUrl\": \"https://test.com\" }".getBytes());
+      .json("{ 'baseUrl': 'https://test.com' }");
+
     MockHttpResponse response = new MockHttpResponse();
     dispatcher.invoke(request, response);
 
@@ -137,35 +139,50 @@ public class BlueSpiceConfigResourceTest {
   @Nested
   class WithRepository {
 
-    Repository REPOSITORY = RepositoryTestData.createHeartOfGold();
-
-    String URI = "/v2/bluespice/" + REPOSITORY.getNamespace() + "/" + REPOSITORY.getName();
+    private final Repository repository = RepositoryTestData.createHeartOfGold();
+    private final String uri = "/v2/bluespice/" + repository.getNamespace() + "/" + repository.getName();
 
     @BeforeEach
     void init() {
-      when(repositoryManager.get(new NamespaceAndName(REPOSITORY.getNamespace(), REPOSITORY.getName()))).thenReturn(REPOSITORY);
+      when(repositoryManager.get(new NamespaceAndName(repository.getNamespace(), repository.getName()))).thenReturn(repository);
     }
 
     @Test
+    @SubjectAware(value = "TrainerRed", permissions = "repository:configureBlueSpice:id-1")
     void shouldGetRepositoryConfig() throws URISyntaxException {
-      BlueSpiceRepositoryConfiguration config = new BlueSpiceRepositoryConfiguration();
-      config.setPath("Project 1");
-      when(context.getConfiguration(REPOSITORY)).thenReturn(config);
-      when(configMapper.map(context.getConfiguration(REPOSITORY), REPOSITORY)).thenReturn(new BlueSpiceRepositoryConfigDto());
+      BlueSpiceRepositoryConfig config = new BlueSpiceRepositoryConfig();
+      config.setRelativePath("/project1");
+      config.setDirectUrl("https://example.com/project1");
+      config.setOverride(OverrideOption.APPEND);
+      when(context.getConfiguration()).thenReturn(globalConfig);
+      when(context.getConfiguration(repository)).thenReturn(config);
 
-      MockHttpRequest request = MockHttpRequest.get(URI);
-      MockHttpResponse response = new MockHttpResponse();
+      MockHttpRequest request = MockHttpRequest.get(uri);
+      JsonMockHttpResponse response = new JsonMockHttpResponse();
       dispatcher.invoke(request, response);
 
       assertThat(response.getStatus()).isEqualTo(200);
+
+      BlueSpiceRepositoryConfigDto responseBody = response.getContentAs(BlueSpiceRepositoryConfigDto.class);
+
+      assertThat(responseBody.getRelativePath()).isEqualTo(config.getRelativePath());
+      assertThat(responseBody.getDirectUrl()).isEqualTo(config.getDirectUrl());
+      assertThat(responseBody.getOverride()).isEqualTo(config.getOverride());
+
+      assertThat(responseBody.getLinks().getLinkBy("self").get().getHref())
+        .isEqualTo(domain + "v2/bluespice/" + repository.getNamespaceAndName().toString());
+      assertThat(responseBody.getLinks().getLinkBy("update").get().getHref())
+        .isEqualTo(domain + "v2/bluespice/" + repository.getNamespaceAndName().toString());
+      assertThat(responseBody.getLinks().getLinkBy("baseUrl").get().getHref())
+        .isEqualTo(globalConfig.getBaseUrl());
     }
 
     @Test
-    void shouldNotGetRepositoryConfig() throws URISyntaxException {
-      REPOSITORY.setId("id-1");
-      doThrow(AuthorizationException.class).when(subject).checkPermission("repository:configureBlueSpice:id-1");
+    @SubjectAware(value = "TrainerRed")
+    void shouldNotGetRepositoryConfigBecauseOfMissingPermission() throws URISyntaxException {
+      repository.setId("id-1");
 
-      MockHttpRequest request = MockHttpRequest.get(URI);
+      MockHttpRequest request = MockHttpRequest.get(uri);
       MockHttpResponse response = new MockHttpResponse();
       dispatcher.invoke(request, response);
 
@@ -173,32 +190,32 @@ public class BlueSpiceConfigResourceTest {
     }
 
     @Test
+    @SubjectAware(value = "TrainerRed", permissions = "repository:configureBlueSpice:id-1")
     void shouldUpdateRepositoryConfig() throws URISyntaxException {
-      BlueSpiceRepositoryConfiguration config = new BlueSpiceRepositoryConfiguration();
-      config.setPath("Project 1");
-      BlueSpiceRepositoryConfigDto configDto = new BlueSpiceRepositoryConfigDto();
-      BlueSpiceRepositoryConfiguration updatedConfig = new BlueSpiceRepositoryConfiguration();
-      updatedConfig.setPath("Project 2");
-      when(context.getConfiguration(REPOSITORY)).thenReturn(config);
-      when(configMapper.map(configDto, context.getConfiguration(REPOSITORY))).thenReturn(updatedConfig);
+      repository.setId("id-1");
 
-      MockHttpRequest request = MockHttpRequest.put(URI)
+      JsonMockHttpRequest request = JsonMockHttpRequest.put(uri)
         .contentType(MediaType.APPLICATION_JSON_TYPE)
-        .content("{ \"path\": \"Project 2\" }".getBytes());
+        .json("{ 'relativePath': '/project1', 'directUrl': 'https://example.com/project1', 'override': 'OVERRIDE' }");
       MockHttpResponse response = new MockHttpResponse();
       dispatcher.invoke(request, response);
 
       assertThat(response.getStatus()).isEqualTo(204);
+      BlueSpiceRepositoryConfig expectedConfig = new BlueSpiceRepositoryConfig();
+      expectedConfig.setRelativePath("/project1");
+      expectedConfig.setDirectUrl("https://example.com/project1");
+      expectedConfig.setOverride(OverrideOption.OVERRIDE);
+      verify(context).storeConfiguration(expectedConfig, repository.getId());
     }
 
     @Test
-    void shouldNotUpdateRepositoryConfig() throws URISyntaxException {
-      REPOSITORY.setId("id-1");
-      doThrow(AuthorizationException.class).when(subject).checkPermission("repository:configureBlueSpice:id-1");
+    @SubjectAware(value = "TrainerRed")
+    void shouldNotUpdateRepositoryConfigBecauseOfMissingPermission() throws URISyntaxException {
+      repository.setId("id-1");
 
-      MockHttpRequest request = MockHttpRequest.put(URI)
+      JsonMockHttpRequest request = JsonMockHttpRequest.put(uri)
         .contentType(MediaType.APPLICATION_JSON_TYPE)
-        .content("{ \"path\": \"Project 2\" }".getBytes());
+        .json("{ 'relativePath': '/project1', 'directUrl': 'https://example.com/project1', 'override': 'OVERRIDE' }");
       MockHttpResponse response = new MockHttpResponse();
       dispatcher.invoke(request, response);
 

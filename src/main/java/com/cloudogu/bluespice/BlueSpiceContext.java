@@ -24,6 +24,7 @@
 
 package com.cloudogu.bluespice;
 
+import com.google.common.base.Strings;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import sonia.scm.repository.Repository;
@@ -42,27 +43,39 @@ public class BlueSpiceContext {
     this.storeFactory = storeFactory;
   }
 
-  public GlobalBlueSpiceConfiguration getConfiguration() {
-    return createGlobalStore().getOptional().orElse(new GlobalBlueSpiceConfiguration());
+  public GlobalBlueSpiceConfig getConfiguration() {
+    return createGlobalStore().getOptional().orElse(new GlobalBlueSpiceConfig());
   }
 
-  public BlueSpiceRepositoryConfiguration getConfiguration(Repository repository) {
-    return createStore(repository.getId()).getOptional().orElse(new BlueSpiceRepositoryConfiguration());
+  public BlueSpiceRepositoryConfig getConfiguration(Repository repository) {
+    return createStore(repository.getId()).getOptional().orElse(new BlueSpiceRepositoryConfig());
   }
 
-  private ConfigurationStore<BlueSpiceRepositoryConfiguration> createStore(String repositoryId) {
-    return storeFactory.withType(BlueSpiceRepositoryConfiguration.class).withName(NAME).forRepository(repositoryId).build();
+  private ConfigurationStore<BlueSpiceRepositoryConfig> createStore(String repositoryId) {
+    return storeFactory.withType(BlueSpiceRepositoryConfig.class).withName(NAME).forRepository(repositoryId).build();
   }
 
-  private ConfigurationStore<GlobalBlueSpiceConfiguration> createGlobalStore() {
-    return storeFactory.withType(GlobalBlueSpiceConfiguration.class).withName(NAME).build();
+  private ConfigurationStore<GlobalBlueSpiceConfig> createGlobalStore() {
+    return storeFactory.withType(GlobalBlueSpiceConfig.class).withName(NAME).build();
   }
 
-  public void storeConfiguration(GlobalBlueSpiceConfiguration configuration) {
+  public void storeConfiguration(GlobalBlueSpiceConfig configuration) {
+    String baseUrl = configuration.getBaseUrl();
+    if(baseUrl.endsWith("/")) {
+      configuration.setBaseUrl(baseUrl.substring(0, baseUrl.length() - 1));
+    }
     createGlobalStore().set(configuration);
   }
 
-  public void storeConfiguration(BlueSpiceRepositoryConfiguration configuration, String repositoryId) {
+  public void storeConfiguration(BlueSpiceRepositoryConfig configuration, String repositoryId) {
+    GlobalBlueSpiceConfig globalConfig = getConfiguration();
+    if(Strings.isNullOrEmpty(globalConfig.getBaseUrl())) {
+      configuration.setOverride(OverrideOption.OVERRIDE);
+    }
+    String relativePath = configuration.getRelativePath();
+    if(!Strings.isNullOrEmpty(relativePath) && relativePath.startsWith("/")) {
+      configuration.setRelativePath(relativePath.replaceFirst("/",""));
+    }
     createStore(repositoryId).set(configuration);
   }
 }

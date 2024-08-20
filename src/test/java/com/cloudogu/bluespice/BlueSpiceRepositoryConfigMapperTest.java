@@ -53,6 +53,12 @@ class BlueSpiceRepositoryConfigMapperTest {
   private URI expectedBaseUri;
 
   @Mock
+  private BlueSpiceContext blueSpiceContext;
+
+  @Mock
+  private GlobalBlueSpiceConfig globalConfig;
+
+  @Mock
   private Subject subject;
 
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
@@ -74,34 +80,36 @@ class BlueSpiceRepositoryConfigMapperTest {
 
   @Test
   void shouldMapAttributeToDto() {
-    BlueSpiceRepositoryConfiguration configuration = new BlueSpiceRepositoryConfiguration();
-    configuration.setPath("Project1");
+    BlueSpiceRepositoryConfig configuration = new BlueSpiceRepositoryConfig();
+    configuration.setRelativePath("Project1");
     BlueSpiceRepositoryConfigDto dto = mapper.map(configuration, REPOSITORY);
-    assertThat(dto.getPath()).isEqualTo("Project1");
+    assertThat(dto.getRelativePath()).isEqualTo("Project1");
   }
 
   @Test
   void shouldAddHalLinksToDto() {
     when(subject.isPermitted("repository:configureBlueSpice:" + REPOSITORY.getId())).thenReturn(true);
-
-    BlueSpiceRepositoryConfigDto dto = mapper.map(new BlueSpiceRepositoryConfiguration(), REPOSITORY);
+    when(blueSpiceContext.getConfiguration()).thenReturn(globalConfig);
+    when(blueSpiceContext.getConfiguration().getBaseUrl()).thenReturn("https://example.com");
+    BlueSpiceRepositoryConfigDto dto = mapper.map(new BlueSpiceRepositoryConfig(), REPOSITORY);
 
     String expectedUrl = expectedBaseUri.toString() + REPOSITORY.getNamespace() + "/" + REPOSITORY.getName();
     assertThat(Objects.requireNonNull(dto.getLinks().getLinkBy("self").orElse(null)).getHref()).isEqualTo(expectedUrl);
     assertThat(Objects.requireNonNull(dto.getLinks().getLinkBy("update").orElse(null)).getHref()).isEqualTo(expectedUrl);
+    assertThat(Objects.requireNonNull(dto.getLinks().getLinkBy("baseUrl").orElse(null)).getHref()).isEqualTo("https://example.com");
   }
 
   @Test
   void shouldNotAddUpdateLinkToDtoIfNotPermitted() {
-    BlueSpiceRepositoryConfigDto dto = mapper.map(new BlueSpiceRepositoryConfiguration(), REPOSITORY);
+    BlueSpiceRepositoryConfigDto dto = mapper.map(new BlueSpiceRepositoryConfig(), REPOSITORY);
     assertThat(dto.getLinks().getLinkBy("update").isPresent()).isFalse();
   }
 
   @Test
   void shouldMapAttributeFromDto() {
-    BlueSpiceRepositoryConfiguration oldConfiguration = new BlueSpiceRepositoryConfiguration();
+    BlueSpiceRepositoryConfig oldConfiguration = new BlueSpiceRepositoryConfig();
     BlueSpiceRepositoryConfigDto dto = new BlueSpiceRepositoryConfigDto();
-    BlueSpiceRepositoryConfiguration configuration = mapper.map(dto, oldConfiguration);
-    assertThat(configuration.getPath()).isEqualTo(dto.getPath());
+    BlueSpiceRepositoryConfig configuration = mapper.map(dto, oldConfiguration);
+    assertThat(configuration.getRelativePath()).isEqualTo(dto.getRelativePath());
   }
 }

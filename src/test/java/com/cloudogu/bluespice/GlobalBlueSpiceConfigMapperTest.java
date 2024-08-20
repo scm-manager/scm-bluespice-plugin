@@ -70,7 +70,7 @@ class GlobalBlueSpiceConfigMapperTest {
 
   @Test
   void shouldMapAttributeToDto() {
-    GlobalBlueSpiceConfiguration configuration = new GlobalBlueSpiceConfiguration();
+    GlobalBlueSpiceConfig configuration = new GlobalBlueSpiceConfig();
     configuration.setBaseUrl("https://example.com/");
     GlobalBlueSpiceConfigDto dto = mapper.map(configuration);
     assertThat(dto.getBaseUrl()).isEqualTo("https://example.com/");
@@ -81,7 +81,7 @@ class GlobalBlueSpiceConfigMapperTest {
     when(subject.isPermitted("configuration:write:blueSpice")).thenReturn(true);
     when(subject.isPermitted("configuration:read:blueSpice")).thenReturn(true);
 
-    GlobalBlueSpiceConfigDto dto = mapper.map(new GlobalBlueSpiceConfiguration());
+    GlobalBlueSpiceConfigDto dto = mapper.map(new GlobalBlueSpiceConfig());
 
     assertThat(Objects.requireNonNull(dto.getLinks().getLinkBy("self").orElse(null)).getHref()).isEqualTo(expectedBaseUri.toString());
     assertThat(Objects.requireNonNull(dto.getLinks().getLinkBy("update").orElse(null)).getHref()).isEqualTo(expectedBaseUri.toString());
@@ -89,15 +89,15 @@ class GlobalBlueSpiceConfigMapperTest {
 
   @Test
   void shouldNotAddUpdateLinkToDtoIfNotPermitted() {
-    GlobalBlueSpiceConfigDto dto = mapper.map(new GlobalBlueSpiceConfiguration());
+    GlobalBlueSpiceConfigDto dto = mapper.map(new GlobalBlueSpiceConfig());
     assertThat(dto.getLinks().getLinkBy("update").isPresent()).isFalse();
   }
 
   @Test
   void shouldMapAttributeFromDto() {
-    GlobalBlueSpiceConfiguration oldConfiguration = new GlobalBlueSpiceConfiguration();
+    GlobalBlueSpiceConfig oldConfiguration = new GlobalBlueSpiceConfig();
     GlobalBlueSpiceConfigDto dto = new GlobalBlueSpiceConfigDto();
-    GlobalBlueSpiceConfiguration configuration = mapper.map(dto, oldConfiguration);
+    GlobalBlueSpiceConfig configuration = mapper.map(dto, oldConfiguration);
     assertThat(configuration.getBaseUrl()).isEqualTo(dto.getBaseUrl());
   }
 }

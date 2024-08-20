@@ -22,24 +22,16 @@
  * SOFTWARE.
  */
 
-package com.cloudogu.bluespice;
+import styled from "styled-components";
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlRootElement;
-import lombok.Data;
-import sonia.scm.Validateable;
-import sonia.scm.util.Util;
+export const LinkButton = styled.div`
+  align-self: end;
+`;
 
-@Data
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlRootElement(name = "bluespice-config")
-public class GlobalBlueSpiceConfiguration implements Validateable {
-
-  private String baseUrl;
-
-  @Override
-  public boolean isValid() {
-    return Util.isNotEmpty(baseUrl);
-  }
-}
+export const BaseUrlWrapper = styled.div`
+  padding: 0.5rem;
+  background: var(--scm-secondary-less-color);
+  border: 1px solid var(--scm-border-color);
+  overflow-wrap: break-word;
+  border-radius: 0.5rem;
+`;

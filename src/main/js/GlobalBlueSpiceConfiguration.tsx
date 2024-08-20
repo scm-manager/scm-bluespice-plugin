@@ -25,12 +25,20 @@
 import React, { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfigurationForm, Title, Form } from "@scm-manager/ui-core";
+import { HalRepresentation } from "@scm-manager/ui-types";
+
+type GlobalBlueSpiceConfigurationDto = HalRepresentation & {
+  baseUrl: string;
+};
 
 const GlobalBlueSpiceConfiguration: FC<{ link: string }> = ({ link }) => {
   const [t] = useTranslation("plugins");
 
   return (
-    <ConfigurationForm link={link} translationPath={["plugins", "scm-bluespice-plugin.config"]}>
+    <ConfigurationForm<GlobalBlueSpiceConfigurationDto>
+      link={link}
+      translationPath={["plugins", "scm-bluespice-plugin.config"]}
+    >
       <Title>{t("scm-bluespice-plugin.config.title")}</Title>
       <p className="mb-2">{t("scm-bluespice-plugin.config.globalDescription")}</p>
       <Form.Row>

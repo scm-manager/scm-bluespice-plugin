@@ -24,6 +24,7 @@
 
 package com.cloudogu.bluespice;
 
+import com.google.common.annotations.VisibleForTesting;
 import de.otto.edison.hal.Link;
 import de.otto.edison.hal.Links;
 import jakarta.inject.Inject;
@@ -45,9 +46,14 @@ public abstract class GlobalBlueSpiceConfigMapper extends HalAppenderMapper {
   @Inject
   private ScmPathInfoStore scmPathInfoStore;
 
-  public abstract GlobalBlueSpiceConfigDto map(GlobalBlueSpiceConfiguration config);
+  public abstract GlobalBlueSpiceConfigDto map(GlobalBlueSpiceConfig config);
 
-  public abstract GlobalBlueSpiceConfiguration map(GlobalBlueSpiceConfigDto dto, @Context GlobalBlueSpiceConfiguration oldConfig);
+  public abstract GlobalBlueSpiceConfig map(GlobalBlueSpiceConfigDto dto, @Context GlobalBlueSpiceConfig oldConfig);
+
+  @VisibleForTesting
+  void setScmPathInfoStore(ScmPathInfoStore scmPathInfoStore) {
+    this.scmPathInfoStore = scmPathInfoStore;
+  }
 
   @AfterMapping
   public void appendLinks(@MappingTarget GlobalBlueSpiceConfigDto target) {

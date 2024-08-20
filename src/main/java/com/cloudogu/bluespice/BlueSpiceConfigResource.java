@@ -119,7 +119,6 @@ public class BlueSpiceConfigResource {
   public Response updateGlobalConfig(GlobalBlueSpiceConfigDto updatedConfig) {
     ConfigurationPermissions.write(NAME).check();
     context.storeConfiguration(globalConfigMapper.map(updatedConfig, context.getConfiguration()));
-
     return Response.noContent().build();
   }
 

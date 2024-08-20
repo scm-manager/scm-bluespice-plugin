@@ -24,22 +24,17 @@
 
 package com.cloudogu.bluespice;
 
-import de.otto.edison.hal.HalRepresentation;
-import de.otto.edison.hal.Links;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
 
-@NoArgsConstructor
-@Getter
-@Setter
-public class BlueSpiceRepositoryConfigDto extends HalRepresentation {
+@Data
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "bluespice-config")
+public class BlueSpiceRepositoryConfig {
+
   private String relativePath;
   private String directUrl;
-  private OverrideOption override;
-
-  @Override
-  protected HalRepresentation add(Links links) {
-    return super.add(links);
-  }
+  private OverrideOption override = OverrideOption.APPEND;
 }

@@ -24,7 +24,7 @@
 
 import React, { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { Repository } from "@scm-manager/ui-types";
+import { Link, Repository } from "@scm-manager/ui-types";
 import { ExternalNavLink } from "@scm-manager/ui-components";
 
 type Props = {
@@ -34,7 +34,7 @@ type Props = {
 const BlueSpiceNavLink: FC<Props> = ({ repository }) => {
   const [t] = useTranslation("plugins");
 
-  const blueSpiceLink = repository._links["blueSpice"]?.href;
+  const blueSpiceLink = (repository._links["blueSpice"] as Link | undefined)?.href ?? "";
 
   return <ExternalNavLink to={blueSpiceLink} icon="fas fa-book-reader" label={t("scm-bluespice-plugin.navLink")} />;
 };

@@ -24,22 +24,7 @@
 
 package com.cloudogu.bluespice;
 
-import de.otto.edison.hal.HalRepresentation;
-import de.otto.edison.hal.Links;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@NoArgsConstructor
-@Getter
-@Setter
-public class BlueSpiceRepositoryConfigDto extends HalRepresentation {
-  private String relativePath;
-  private String directUrl;
-  private OverrideOption override;
-
-  @Override
-  protected HalRepresentation add(Links links) {
-    return super.add(links);
-  }
+public enum OverrideOption {
+  OVERRIDE,
+  APPEND
 }

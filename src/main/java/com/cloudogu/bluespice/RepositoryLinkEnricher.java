@@ -24,9 +24,16 @@
 
 package com.cloudogu.bluespice;
 
+import com.google.common.base.Strings;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
-import sonia.scm.api.v2.resources.*;
+
+import sonia.scm.api.v2.resources.Enrich;
+import sonia.scm.api.v2.resources.HalAppender;
+import sonia.scm.api.v2.resources.HalEnricher;
+import sonia.scm.api.v2.resources.HalEnricherContext;
+import sonia.scm.api.v2.resources.LinkBuilder;
+import sonia.scm.api.v2.resources.ScmPathInfoStore;
 import sonia.scm.plugin.Extension;
 import sonia.scm.repository.Repository;
 import sonia.scm.repository.RepositoryPermissions;
@@ -48,20 +55,22 @@ public class RepositoryLinkEnricher implements HalEnricher {
   public void enrich(HalEnricherContext context, HalAppender appender) {
     Repository repository = context.oneRequireByType(Repository.class);
     LinkBuilder linkBuilder = new LinkBuilder(scmPathInfoStore.get().get(), BlueSpiceConfigResource.class);
-    String baseUrl = blueSpiceContext.getConfiguration().getBaseUrl();
-    if (baseUrl != null) {
-      if (RepositoryPermissions.custom("configureBlueSpice", repository).isPermitted()) {
+
+    if (RepositoryPermissions.custom("configureBlueSpice", repository).isPermitted()) {
       appender.appendLink("blueSpiceConfig", linkBuilder.method("getRepoConfig").parameters(repository.getNamespace(), repository.getName()).href());
-      }
-      String path = blueSpiceContext.getConfiguration(repository).getPath();
-      if (path != null) {
-        if (!baseUrl.endsWith("/")) {
-          baseUrl = baseUrl + "/";
-        }
-        appender.appendLink("blueSpice", baseUrl + path);
-      } else {
-        appender.appendLink("blueSpice", baseUrl);
-      }
+    }
+
+    String baseUrl = blueSpiceContext.getConfiguration().getBaseUrl();
+    String path = blueSpiceContext.getConfiguration(repository).getRelativePath();
+    String directUrl = blueSpiceContext.getConfiguration(repository).getDirectUrl();
+    OverrideOption override = blueSpiceContext.getConfiguration(repository).getOverride();
+    String link = "blueSpice";
+
+    if (!Strings.isNullOrEmpty(directUrl) && OverrideOption.OVERRIDE.equals(override)) {
+      appender.appendLink(link, directUrl);
+    } else if (!Strings.isNullOrEmpty(baseUrl) && OverrideOption.APPEND.equals(override)) {
+      path = path == null ? "" : "/" + path;
+      appender.appendLink(link, baseUrl + path);
     }
   }
 }

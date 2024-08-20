@@ -4,12 +4,20 @@
     "config": {
       "title": "BlueSpice Konfiguration",
       "globalDescription": "Diese Konfiguration ermöglicht das Festlegen der Basis-URL einer BlueSpice-Instanz. In den Repository-Einstellungen kann anschließend der Pfad erweitert werden.",
-      "description": "Diese Konfiguration ermöglicht das Festlegen eines ergänzenden Pfades zu einer in der globalen Konfiguration definierten Basis-URL. Wurde kein Pfad festgelegt, wird auf die Basis-URL verwiesen.",
+      "button": "Link testen",
+      "configure": "BlueSpice-Anbindung konfigurieren",
       "baseUrl": {
-        "label": "Basis-URL"
+        "header": "Ergänzen Sie die Basis-URL:",
+        "description": "um einen individuellen Pfad oder setzen Sie alternativ eine individuelle URL."
       },
-      "path": {
-        "label": "Pfad"
+      "overridePath": {
+        "header": "Konfigurieren Sie die URL, um auf Ihren BlueSpice-Server zuzugreifen",
+        "label": "BlueSpice-URL",
+        "option": "Individuelle BlueSpice-URL setzen"
+      },
+      "appendPath": {
+        "label": "Pfad",
+        "option": "Basis-URL um Pfad erweitern"
       }
     }
   },

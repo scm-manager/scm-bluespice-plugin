@@ -25,9 +25,8 @@
 package com.cloudogu.bluespice;
 
 import com.google.inject.util.Providers;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
-import org.junit.jupiter.api.AfterEach;
+import org.github.sdorra.jse.ShiroExtension;
+import org.github.sdorra.jse.SubjectAware;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -42,24 +41,28 @@ import sonia.scm.repository.RepositoryTestData;
 
 import java.net.URI;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+
+@ExtendWith({MockitoExtension.class, ShiroExtension.class})
 public class RepositoryLinkEnricherTest {
 
   @Mock
   private BlueSpiceContext blueSpiceContext;
   @Mock
-  private GlobalBlueSpiceConfiguration globalConfig;
+  private GlobalBlueSpiceConfig globalConfig;
   @Mock
-  private BlueSpiceRepositoryConfiguration config;
+  private BlueSpiceRepositoryConfig config;
 
   @Mock
   private HalEnricherContext context;
   @Mock
   private HalAppender appender;
-  @Mock
-  private Subject subject;
 
   private RepositoryLinkEnricher enricher;
 
@@ -67,7 +70,6 @@ public class RepositoryLinkEnricherTest {
 
   @BeforeEach
   public void init() {
-    ThreadContext.bind(subject);
     ScmPathInfoStore scmPathInfoStore = new ScmPathInfoStore();
     scmPathInfoStore.set(() -> URI.create("https://scm-manager.org/scm/api/"));
     enricher = new RepositoryLinkEnricher(Providers.of(scmPathInfoStore), blueSpiceContext);
@@ -76,22 +78,26 @@ public class RepositoryLinkEnricherTest {
     when(blueSpiceContext.getConfiguration()).thenReturn(globalConfig);
   }
 
-  @AfterEach
-  void unbindSubject() {
-    ThreadContext.unbindSubject();
-  }
-
   @Test
-  void shouldNotAppendConfigLinkIfBaseUrlMissing() {
+  @SubjectAware(value = "TrainerRed", permissions = "repository:configureBlueSpice:*")
+  void shouldAppendConfigLink() {
     when(blueSpiceContext.getConfiguration().getBaseUrl()).thenReturn(null);
+    when(blueSpiceContext.getConfiguration(REPOSITORY)).thenReturn(config);
+    when(blueSpiceContext.getConfiguration(REPOSITORY).getRelativePath()).thenReturn(null);
+    when(blueSpiceContext.getConfiguration(REPOSITORY).getDirectUrl()).thenReturn(null);
+    when(blueSpiceContext.getConfiguration(REPOSITORY).getOverride()).thenReturn(OverrideOption.APPEND);
 
     enricher.enrich(context, appender);
 
-    verify(appender, never()).appendLink(anyString(), anyString());
+    verify(appender).appendLink(
+            "blueSpiceConfig",
+            "https://scm-manager.org/scm/api/v2/bluespice/hitchhiker/HeartOfGold"
+    );
   }
 
   @Test
-  void shouldNotAppendConfigLinkIfPermissionMissing() {
+  @SubjectAware(value = "TrainerRed")
+  void shouldNotAppendConfigLinkIfPermissionIsMissing() {
     when(blueSpiceContext.getConfiguration().getBaseUrl()).thenReturn("https://example.com");
     when(blueSpiceContext.getConfiguration(REPOSITORY)).thenReturn(config);
 
@@ -100,19 +106,35 @@ public class RepositoryLinkEnricherTest {
     verify(appender, never()).appendLink(eq("blueSpiceConfig"), anyString());
   }
 
+  @Test
+  @SubjectAware(value = "TrainerRed", permissions = "repository:configureBlueSpice:*")
+  void shouldUseDirectUrl() {
+    when(blueSpiceContext.getConfiguration(REPOSITORY)).thenReturn(config);
+    when(blueSpiceContext.getConfiguration(REPOSITORY).getRelativePath()).thenReturn(null);
+    when(blueSpiceContext.getConfiguration().getBaseUrl()).thenReturn("https://test.com");
+    when(blueSpiceContext.getConfiguration(REPOSITORY).getDirectUrl()).thenReturn("https://example.com");
+    when(blueSpiceContext.getConfiguration(REPOSITORY).getOverride()).thenReturn(OverrideOption.OVERRIDE);
+
+    enricher.enrich(context, appender);
+
+    verify(appender).appendLink("blueSpice", "https://example.com");
+  }
+
   @Nested
   class WithBaseUrl {
 
     @BeforeEach
     public void init() {
       when(blueSpiceContext.getConfiguration(REPOSITORY)).thenReturn(config);
-      when(subject.isPermitted("repository:configureBlueSpice:" + REPOSITORY.getId())).thenReturn(true);
       when(blueSpiceContext.getConfiguration().getBaseUrl()).thenReturn("https://example.com");
     }
 
     @Test
-    void shouldAppendUrl() {
-      when(blueSpiceContext.getConfiguration(REPOSITORY).getPath()).thenReturn(null);
+    @SubjectAware(value = "TrainerRed", permissions = "repository:configureBlueSpice:*")
+    void shouldReturnBaseUrlWhenRelativePathIsNull() {
+      when(blueSpiceContext.getConfiguration(REPOSITORY).getRelativePath()).thenReturn(null);
+      when(blueSpiceContext.getConfiguration(REPOSITORY).getDirectUrl()).thenReturn(null);
+      when(blueSpiceContext.getConfiguration(REPOSITORY).getOverride()).thenReturn(OverrideOption.APPEND);
 
       enricher.enrich(context, appender);
 
@@ -121,19 +143,24 @@ public class RepositoryLinkEnricherTest {
     }
 
     @Test
-    void shouldAppendUrlWithPath() {
-      when(blueSpiceContext.getConfiguration(REPOSITORY).getPath()).thenReturn("Project_1");
+    @SubjectAware(value = "TrainerRed", permissions = "repository:configureBlueSpice:*")
+    void shouldReturnBaseUrlWhenRelativePathIsEmpty() {
+      when(blueSpiceContext.getConfiguration(REPOSITORY).getRelativePath()).thenReturn("");
+      when(blueSpiceContext.getConfiguration(REPOSITORY).getDirectUrl()).thenReturn(null);
+      when(blueSpiceContext.getConfiguration(REPOSITORY).getOverride()).thenReturn(OverrideOption.APPEND);
 
       enricher.enrich(context, appender);
 
       verify(appender, times(2)).appendLink(anyString(), anyString());
-      verify(appender).appendLink("blueSpice", "https://example.com/Project_1");
+      verify(appender).appendLink("blueSpice", "https://example.com/");
     }
 
     @Test
-    void shouldAppendUrlWithEndingSlashAndPath() {
-      when(blueSpiceContext.getConfiguration(REPOSITORY).getPath()).thenReturn("Project_1");
-      when(blueSpiceContext.getConfiguration().getBaseUrl()).thenReturn("https://example.com/");
+    @SubjectAware(value = "TrainerRed", permissions = "repository:configureBlueSpice:*")
+    void shouldAppendUrlWithPath() {
+      when(blueSpiceContext.getConfiguration(REPOSITORY).getRelativePath()).thenReturn("Project_1");
+      when(blueSpiceContext.getConfiguration(REPOSITORY).getDirectUrl()).thenReturn(null);
+      when(blueSpiceContext.getConfiguration(REPOSITORY).getOverride()).thenReturn(OverrideOption.APPEND);
 
       enricher.enrich(context, appender);
 
