@@ -16,7 +16,7 @@
 
 import React, { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { ConfigurationForm, Title, Form, useDocumentTitle } from "@scm-manager/ui-core";
+import { ConfigurationForm, Title, Form } from "@scm-manager/ui-core";
 import { HalRepresentation } from "@scm-manager/ui-types";
 import { validation } from "@scm-manager/ui-components";
 
@@ -26,7 +26,6 @@ type GlobalBlueSpiceConfigurationDto = HalRepresentation & {
 
 const GlobalBlueSpiceConfiguration: FC<{ link: string }> = ({ link }) => {
   const [t] = useTranslation("plugins");
-  useDocumentTitle(t("scm-bluespice-plugin.config.title"));
 
   const isValidBaseUrl = (baseUrl: string) => {
     return baseUrl === "" || validation.isUrlValid(baseUrl);
