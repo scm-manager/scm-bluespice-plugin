@@ -22,7 +22,7 @@ dependencies {
 }
 
 scmPlugin {
-  scmVersion = "3.8.1-SNAPSHOT"
+  scmVersion = "3.9.0"
   displayName = "Bluespice"
   description = "Integrates BlueSpice MediaWiki to SCM-Manager"
   author = "Cloudogu GmbH"
