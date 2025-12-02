@@ -7,12 +7,12 @@
       "button": "Test link",
       "configure": "configure BlueSpice",
       "baseUrl": {
-        "header": "Expend the base URL:",
+        "header": "Extend the base URL:",
         "description": "with a path or alternatively set an individual URL."
       },
       "overridePath": {
         "header": "Configure the URL to access your BlueSpice server",
-        "label": "BlueSpice-URL",
+        "label": "BlueSpice URL",
         "option": "Set individual BlueSpice URL"
       },
       "appendPath": {
@@ -33,8 +33,8 @@
     "repository": {
       "configureBlueSpice": {
         "*": {
-          "displayName": "Modify repository specific BlueSpice configuration",
-          "description": "May modify the repository specific BlueSpice configuration for all repositories"
+          "displayName": "Modify repository-specific BlueSpice configuration",
+          "description": "May modify the repository-specific BlueSpice configuration for all repositories"
         }
       }
     }
@@ -43,7 +43,7 @@
     "repository": {
       "configureBlueSpice": {
         "displayName": "configure BlueSpice",
-        "description": "May modify the repository specific BlueSpice configuration"
+        "description": "May modify the repository-specific BlueSpice configuration"
       }
     }
   }

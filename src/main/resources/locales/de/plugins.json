@@ -2,7 +2,7 @@
   "scm-bluespice-plugin": {
     "navLink": "BlueSpice",
     "config": {
-      "title": "BlueSpice Konfiguration",
+      "title": "BlueSpice-Konfiguration",
       "globalDescription": "Diese Konfiguration ermöglicht das Festlegen der Basis-URL einer BlueSpice-Instanz. In den Repository-Einstellungen kann anschließend der Pfad erweitert werden.",
       "button": "Link testen",
       "configure": "BlueSpice-Anbindung konfigurieren",
@@ -25,16 +25,16 @@
     "configuration": {
       "read,write": {
         "blueSpice": {
-          "displayName": "Globale BlueSpice Konfiguration ändern",
-          "description": "Darf die globale BlueSpice Konfiguration verändern"
+          "displayName": "Globale BlueSpice-Konfiguration ändern",
+          "description": "Darf die globale BlueSpice-Konfiguration verändern"
         }
       }
     },
     "repository": {
       "configureBlueSpice": {
         "*": {
-          "displayName": "Repository-spezifische BlueSpice Konfiguration ändern",
-          "description": "Darf die repository-spezifischen BlueSpice Konfiguration verändern"
+          "displayName": "Repository-spezifische BlueSpice-Konfiguration ändern",
+          "description": "Darf die repository-spezifischen BlueSpice-Konfiguration verändern"
         }
       }
     }
@@ -42,8 +42,8 @@
   "verbs": {
     "repository": {
       "configureBlueSpice": {
-        "displayName": "BlueSpice Konfiguration ändern",
-        "description": "Darf die BlueSpice Konfiguration verändern"
+        "displayName": "BlueSpice-Konfiguration ändern",
+        "description": "Darf die BlueSpice-Konfiguration verändern"
       }
     }
   }
