@@ -56,7 +56,10 @@ public abstract class BlueSpiceRepositoryConfigMapper extends HalAppenderMapper 
     Links.Builder linksBuilder = linkingTo().self(self(repository));
     if (RepositoryPermissions.custom("configureBlueSpice", repository).isPermitted()) {
       linksBuilder.single(Link.link("update", update(repository)));
-      linksBuilder.single(Link.link("baseUrl", baseUrl()));
+      String baseUrl = baseUrl();
+      if (baseUrl != null && !baseUrl.isEmpty()) {
+        linksBuilder.single(Link.link("baseUrl", baseUrl));
+      }
       target.add(linksBuilder.build());
     }
   }

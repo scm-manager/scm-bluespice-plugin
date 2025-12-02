@@ -1,0 +1,2 @@
+- type: fixed
+  description: Error when baseurl was not initially set when calling the repository settings
