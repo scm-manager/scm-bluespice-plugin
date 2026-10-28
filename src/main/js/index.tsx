@@ -20,20 +20,20 @@ import BlueSpiceRepositoryConfiguration from "./BlueSpiceRepositoryConfiguration
 import BlueSpiceNavLink from "./BlueSpiceNavLink";
 import GlobalBlueSpiceConfiguration from "./GlobalBlueSpiceConfiguration";
 
-ConfigurationBinder.bindGlobal(
+ConfigurationBinder.bindAdminSetting(
   "/bluespice",
   "scm-bluespice-plugin.navLink",
   "blueSpiceConfig",
-  GlobalBlueSpiceConfiguration
+  GlobalBlueSpiceConfiguration,
 );
 
 ConfigurationBinder.bindRepositorySetting(
   "/bluespice",
   "scm-bluespice-plugin.navLink",
   "blueSpiceConfig",
-  BlueSpiceRepositoryConfiguration
+  BlueSpiceRepositoryConfiguration,
 );
 
 binder.bind("repository.navigation", BlueSpiceNavLink, {
-  predicate: props => !!props.repository._links.blueSpice?.href
+  predicate: (props) => !!props.repository._links.blueSpice?.href,
 });

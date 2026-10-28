@@ -17,8 +17,8 @@
 import React, { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { validation } from "@scm-manager/ui-components";
-import { ConfigurationForm, Subtitle, Form } from "@scm-manager/ui-core";
-import { HalRepresentation } from "@scm-manager/ui-types";
+import { ConfigurationForm, Subtitle, Form, useRepositoryFromParams } from "@scm-manager/ui-core";
+import { HalRepresentation, Link } from "@scm-manager/ui-types";
 import { BaseUrlWrapper, LinkButton } from "./BlueSpiceRepositoryUtil";
 
 type BlueSpiceRepositoryConfigurationDto = HalRepresentation & {
@@ -32,12 +32,10 @@ type BlueSpiceRepositoryConfigurationDto = HalRepresentation & {
   };
 };
 
-type Props = {
-  link: string;
-}
-
-const BlueSpiceRepositoryConfiguration: FC<Props> = ({ link }) => {
+const BlueSpiceRepositoryConfiguration: FC = () => {
   const [t] = useTranslation("plugins");
+  const repository = useRepositoryFromParams();
+  const link = (repository._links["blueSpiceConfig"] as Link)?.href;
 
   const handleLink = (route: string) => {
     window.open(route, "_blank", "noreferrer");

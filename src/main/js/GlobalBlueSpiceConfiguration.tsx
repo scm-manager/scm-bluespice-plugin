@@ -16,16 +16,18 @@
 
 import React, { FC } from "react";
 import { useTranslation } from "react-i18next";
+import { useRequiredIndexLink } from "@scm-manager/ui-api";
+import { validation } from "@scm-manager/ui-components";
 import { ConfigurationForm, Title, Form } from "@scm-manager/ui-core";
 import { HalRepresentation } from "@scm-manager/ui-types";
-import { validation } from "@scm-manager/ui-components";
 
 type GlobalBlueSpiceConfigurationDto = HalRepresentation & {
   baseUrl: string;
 };
 
-const GlobalBlueSpiceConfiguration: FC<{ link: string }> = ({ link }) => {
+const GlobalBlueSpiceConfiguration: FC = () => {
   const [t] = useTranslation("plugins");
+  const link = useRequiredIndexLink("blueSpiceConfig");
 
   const isValidBaseUrl = (baseUrl: string) => {
     return baseUrl === "" || validation.isUrlValid(baseUrl);
